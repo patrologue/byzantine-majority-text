@@ -16,6 +16,11 @@ def standardise_beta_code(text, drop_variants=True):
     and Varia (\+) are written with the slash before the plus sign,
     while Prof. Robinson's text puts the plus first.
 
+    This function also replaces apostrophes with right quotation marks
+    in order to make the typography more consistent and aesthetically pleasing.
+
+    It also adds a space after some final sigmas to avoid their conversion to medial sigmas.
+
     It has an option to remove textual variants.
     """
 
@@ -29,6 +34,9 @@ def standardise_beta_code(text, drop_variants=True):
     # Swapping the order of plus (+) followed by slash (/ or \)
     text = text.replace("+/", "/+")
     text = text.replace("+\\", "\\+")
+
+    # Replacing apostrophes with quotation marks
+    text = text.replace("'", "’")
 
     # Adding a space between final sigma and dash/bracket (if not done, final sigma is rendered as a medial sigma)
     text = text.replace("S-", "S -")
@@ -47,21 +55,28 @@ def convert_beta_to_unicode(beta):
     This function makes use of the beta_code_to_greek()
     function from the beta-code package.
     """
+    beta = beta.replace(
+        " = ", " ♦ "
+    )  # This is to avoid the equals sign being converted to an accent, see issue #33
     word_tokenised_beta = beta.split(" ")
     beta_line = " ".join(word_tokenised_beta)
     unicode_line = beta_code.beta_code_to_greek(beta_line)
-    unicode_line = unicode_line.replace(
-        "{ν", "{NA"
-    )  # The letters marking the variants need to be uppercase
+
+    # The following lines replace the apparatus codes
+    # These codes are explained in the README.md file that is inside the `source` folder.
+    # The codes are originally capital Latin letters, but they are converted to Greek letters by the converter
+    # In consequence, we replace the respective Greek letters in the converted Greek text
+    unicode_line = unicode_line.replace("{ν", "{NA")
     unicode_line = unicode_line.replace("{β", "{Byz")
-    unicode_line = unicode_line.replace("{ξ", "{NA27/28")  # This code means NA 27/28
-    unicode_line = unicode_line.replace("{μ", "{ECM")  # This code means ECM
-    unicode_line = unicode_line.replace("{ς", "{NA27")  # This code means NA 27
-    unicode_line = unicode_line.replace("{ε", "{NA28")  # This code means NA 28
+    unicode_line = unicode_line.replace("{ξ", "{NA27/28")
+    unicode_line = unicode_line.replace("{μ", "{ECM")
+    unicode_line = unicode_line.replace("{ς", "{NA27")
+    unicode_line = unicode_line.replace("{ε", "{NA28")
     unicode_line = unicode_line.replace(
         "ς -", "ς-"
-    )  # Removing the extra space between final sigmas and dashes/brackets (we added it in the previous function)
+    )  # Removing the extra space between final sigmas and dashes/brackets that was added by the standardise_beta_code() function
     unicode_line = unicode_line.replace("ς ]", "ς]")
+    unicode_line = unicode_line.replace(" ♦ ", " = ")  # Placing the equals sign back
     return unicode_line
 
 
